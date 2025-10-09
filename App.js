@@ -1,20 +1,28 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import AppWrapper from './app/AppWrapper';
+import { useFonts } from 'expo-font';
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+  const [fontsLoaded] = useFonts({
+    'bold': require('./assets/fonts/Bold.ttf'),
+    'semi': require('./assets/fonts/Semi.ttf'),
+    'medium': require('./assets/fonts/Medium.ttf'),
+    'regular': require('./assets/fonts/Regular.ttf'),
+    'light': require('./assets/fonts/Light.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return <View style={styles.loadingContainer}><Text>Wait.....</Text></View>;
+  }
+
+  return <AppWrapper />
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
 });
