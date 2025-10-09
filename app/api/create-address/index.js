@@ -2,8 +2,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
 
-const BLOCKRADAR_API_KEY = 'kQlw7zKtfu2HnUBADXecuOARHvM9PfeiMmadfPNC6UGl39lK7dpG2abGsprgmN';
-const BLOCKRADAR_WALLET_ID = '251db0e0-861f-468d-942f-2cd4e171738d'; 
+const BLOCKRADAR_API_KEY = '';
+const BLOCKRADAR_WALLET_ID = ''; 
 
 export async function getOrCreateWallet(user) {
   try {

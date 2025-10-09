@@ -2,7 +2,7 @@ import { supabase } from "../../lib/supabase";
 
 
 // Paystack Secret Key
-const PAYSTACK_SECRET_KEY = 'sk_live_3e4d5995b854e141aa35656bcf05aa7618a5109b';
+const PAYSTACK_SECRET_KEY = '';
 
 export const createPaystackVirtualAccount = async ({ userId, email, firstName, lastName }) => {
     try {

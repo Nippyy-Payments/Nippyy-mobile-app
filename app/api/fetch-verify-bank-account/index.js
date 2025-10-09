@@ -1,6 +1,6 @@
 
 const BASE_URL = "https://api.paystack.co";
-const SECRET_KEY = "sk_live_3e4d5995b854e141aa35656bcf05aa7618a5109b"; 
+const SECRET_KEY = ""; 
 
 // Headers to reuse
 const headers = {
