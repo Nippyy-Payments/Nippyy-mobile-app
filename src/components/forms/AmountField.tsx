@@ -46,11 +46,6 @@ const FLAG_SIZE = 20;
 const CHEVRON = 13;
 const CHEVRON_STROKE = 2.4;
 
-/** Alpha treatments for text on the ink panel, which has no token scale. */
-const ON_INK_LABEL = 'rgba(255, 255, 255, 0.75)';
-const ON_INK_MUTED = 'rgba(255, 255, 255, 0.6)';
-const ON_INK_CHIP = 'rgba(255, 255, 255, 0.12)';
-
 /**
  * Boxed money entry with a currency chip, used where an amount sits alongside
  * another amount — the from/to pair on Convert — and the two need visible
@@ -79,12 +74,12 @@ export function AmountField({
 
   const foreground = isInk ? colors.text.onInk : isBrand ? colors.text.body : colors.text.strong;
   const labelColor = isInk
-    ? ON_INK_LABEL
+    ? colors.text.onInkMuted
     : isBrand
       ? colors.status.infoText
       : colors.text.muted;
-  const balanceColor = isInk ? ON_INK_MUTED : isBrand ? colors.text.link : colors.text.subtle;
-  const symbolColor = isInk ? ON_INK_MUTED : colors.text.subtle;
+  const balanceColor = isInk ? colors.text.onInkSubtle : isBrand ? colors.text.link : colors.text.subtle;
+  const symbolColor = isInk ? colors.text.onInkSubtle : colors.text.subtle;
 
   const variant = figureVariant(amount);
   const figureStyle = { color: foreground, fontVariant: [...tabularNums] };
@@ -188,7 +183,7 @@ export function AmountField({
             paddingHorizontal: CURRENCY_PAD,
             borderRadius: radius.chip,
             backgroundColor: isInk
-              ? ON_INK_CHIP
+              ? colors.surface.onInkChip
               : isBrand
                 ? colors.surface.quiet
                 : colors.surface.sunken,
@@ -204,7 +199,7 @@ export function AmountField({
               name="chevronDown"
               size={CHEVRON}
               strokeWidth={CHEVRON_STROKE}
-              color={isInk ? ON_INK_MUTED : colors.text.muted}
+              color={isInk ? colors.text.onInkSubtle : colors.text.muted}
             />
           ) : null}
         </Pressable>

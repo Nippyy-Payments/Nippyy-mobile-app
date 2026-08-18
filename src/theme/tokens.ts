@@ -150,6 +150,10 @@ export type ColorTokens = {
     link: string;
     onBrand: string;
     onInk: string;
+    /** Secondary text on an ink panel. The panel inverts in dark, so this
+     *  must invert with it — a fixed white alpha vanishes on a light panel. */
+    onInkMuted: string;
+    onInkSubtle: string;
     /** Disabled/placeholder glyphs inside fields and empty-state icons. */
     placeholder: string;
   };
@@ -165,6 +169,8 @@ export type ColorTokens = {
     inkSoft: string;
     brand: string;
     overlay: string;
+    /** A control sitting on an ink panel, e.g. the currency chip. */
+    onInkChip: string;
     /** Field fill when disabled. */
     disabled: string;
   };
@@ -247,6 +253,8 @@ export const lightColors: ColorTokens = {
     link: blue[600],
     onBrand: '#FFFFFF',
     onInk: '#FFFFFF',
+    onInkMuted: 'rgba(255, 255, 255, 0.75)',
+    onInkSubtle: 'rgba(255, 255, 255, 0.6)',
     placeholder: ink[400],
   },
   surface: {
@@ -259,6 +267,7 @@ export const lightColors: ColorTokens = {
     inkSoft: ink[800],
     brand: blue[500],
     overlay: 'rgba(11, 13, 71, 0.55)',
+    onInkChip: 'rgba(255, 255, 255, 0.12)',
     disabled: gray[50],
   },
   border: {
@@ -335,6 +344,9 @@ export const darkColors: ColorTokens = {
     link: blueDark[600],
     onBrand: '#FFFFFF',
     onInk: '#0E1016',
+    // The ink panel is light in dark mode, so these darken rather than lighten.
+    onInkMuted: 'rgba(14, 16, 22, 0.75)',
+    onInkSubtle: 'rgba(14, 16, 22, 0.6)',
     placeholder: inkDark[400],
   },
   surface: {
@@ -347,6 +359,7 @@ export const darkColors: ColorTokens = {
     inkSoft: '#E3E8EF',
     brand: blue[500],
     overlay: 'rgba(4, 6, 12, 0.66)',
+    onInkChip: 'rgba(14, 16, 22, 0.12)',
     disabled: grayDark[50],
   },
   border: {

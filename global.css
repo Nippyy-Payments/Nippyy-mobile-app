@@ -19,6 +19,8 @@
   --color-text-link: #0888BB;
   --color-text-on-brand: #FFFFFF;
   --color-text-on-ink: #FFFFFF;
+  --color-text-on-ink-muted: rgba(255, 255, 255, 0.75);
+  --color-text-on-ink-subtle: rgba(255, 255, 255, 0.6);
   --color-text-placeholder: #4E5689;
   --color-surface-page: #FFFFFF;
   --color-surface-card: #FFFFFF;
@@ -29,6 +31,7 @@
   --color-surface-ink-soft: #101444;
   --color-surface-brand: #0AA5DB;
   --color-surface-overlay: rgba(11, 13, 71, 0.55);
+  --color-surface-on-ink-chip: rgba(255, 255, 255, 0.12);
   --color-surface-disabled: #F6F8FB;
   --color-border-subtle: #EAEEF3;
   --color-border: #DFE5EC;
@@ -91,6 +94,8 @@
   --color-text-link: #4FC0EC;
   --color-text-on-brand: #FFFFFF;
   --color-text-on-ink: #0E1016;
+  --color-text-on-ink-muted: rgba(14, 16, 22, 0.75);
+  --color-text-on-ink-subtle: rgba(14, 16, 22, 0.6);
   --color-text-placeholder: #7B8794;
   --color-surface-page: #101319;
   --color-surface-card: #191D26;
@@ -101,6 +106,7 @@
   --color-surface-ink-soft: #E3E8EF;
   --color-surface-brand: #0AA5DB;
   --color-surface-overlay: rgba(4, 6, 12, 0.66);
+  --color-surface-on-ink-chip: rgba(14, 16, 22, 0.12);
   --color-surface-disabled: #14181F;
   --color-border-subtle: #23272F;
   --color-border: #2E3340;

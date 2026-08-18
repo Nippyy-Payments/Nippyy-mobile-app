@@ -60,4 +60,21 @@ already support an error state — `Input` has `error`, `InlineAlert` has
 | E2E tests | Explicitly skipped. Unit + interaction tests via `@testing-library/react-native` only |
 | Hover / focus-visible on native | Web-only by instruction. Ported as web-only styles |
 | Push notifications | The app has a notifications *screen*; nothing defines delivery, permissions or deep-link targets |
-| Real API integration | Only the wallets response shape is known (see PORTING_PLAN.md §8.7). Every other endpoint is modelled from the design's sample data behind a typed client, so swapping in real endpoints is a lib-layer change |
+| Real API integration | Only the wallets response shape is known (see PORTING_PLAN.md §8.7). Every other endpoint is modelled from the design's sample data behind a typed client, so swapping in real endpoints is a change in `src/lib/api/client.ts` and nowhere else |
+
+---
+
+## 4. Known limitations carried into the finished port
+
+| Item | Detail |
+| --- | --- |
+| **Device verification of gestures** | iOS swipe-back, Android hardware back and the browser's back/forward are all wired through expo-router, and every way of silently breaking them is asserted in `navigation-rules.test.ts`. The gestures themselves have not been exercised on a device or simulator — that needs a real run |
+| **Web deep links need host config** | Web builds as an SPA (`output: "single"`). A static host needs a catch-all rewrite to `index.html` for a hard refresh on a deep link to resolve. Static output was attempted and fails: the persisted store calls AsyncStorage in Node (PORTING_PLAN.md §16) |
+| **Typed routes are off** | Expo's route typegen mis-scans a `src/app` root, emitting component files as routes. Route correctness is enforced by a source-scanning test instead (§17). Worth re-enabling when a later SDK fixes it |
+| **A Jest ordering constraint** | Filling a keypad leaves the next mount in the same test file rendering empty — a test-renderer artifact, reduced to a minimal case (§19). Affected suites put the keypad-driven render last and cover the rules as pure functions |
+| **Rate history is a fixture** | Real history per §8.17, but there is no rates-history endpoint yet, so the seven-day series is served from the client fixture |
+| **Client-side balance total** | The wallets endpoint returns per-wallet balances only, so the naira total is summed on the client through the rate table. If the server ever returns a total, it should win — a client sum can disagree with the ledger the moment a rate moves |
+| **`balance` vs `availableBalance`** | The wallet row shows `balance`; the send flow checks `availableBalance`. If they diverge, a user can see money they cannot spend. The safe behaviour is built; the copy for that case is not designed |
+| **Emoji flags** | Shipped as emoji per §8.10. They degrade to letter pairs ("NG") on platforms without an emoji font, which includes some Android builds and Windows browsers |
+| **Larger screens** | Mobile-only by instruction. The rework surface is documented in PORTING_PLAN.md §6 |
+

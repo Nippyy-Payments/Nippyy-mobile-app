@@ -611,7 +611,7 @@ and summarise after each.
 | **6** | Send flow + onboarding (10 screens, keypad-driven) | ✅ **Done** — see §19 |
 | **7** | Money: convert, fund, rates, bills, bill pay (6 screens) | ✅ **Done** — see §20 |
 | **8** | Account + support (9 screens) | ✅ **Done** — all 29 screens complete, see §21 |
-| **9** | Polish: dark-mode sweep, a11y labels, empty/loading/error states from §8, test gaps | Definition of done met across the board |
+| **9** | Polish: dark-mode sweep, a11y labels, empty/loading/error states from §8, test gaps | ✅ **Done** — see §22 |
 
 Phases 5–8 depend on answers to §8. If the answers are slow I will build the
 happy path and leave the undefined states as clearly-marked stubs rather than
@@ -1167,4 +1167,56 @@ links, devices and close-account copy. A test asserts every menu row has
 because that is what decides whether the row shows a chevron or the external
 glyph, and the design is explicit that getting it wrong makes every row a
 guess.
+
+---
+
+## 22. Phase 9 result — and what the sweep actually found
+
+**293 tests** across 20 suites; `tsc`, `eslint --max-warnings 0` and
+web/iOS/Android bundles all clean. 32 route files, 7 font faces shipped.
+
+### Token discipline is now enforced, not asserted
+
+`theme/__tests__/token-discipline.test.ts` fails the build on:
+
+- a hex colour anywhere outside `tokens.ts`
+- an `rgb()`/`rgba()` anywhere outside `tokens.ts`
+- a component reaching into the raw colour scales (`blue[500]`)
+- any `shadowOffset` / `shadowOpacity` / `shadowRadius` / `elevation` at a
+  call site
+
+Writing it was worth it immediately: **it found a real dark-mode bug.**
+`AmountField` hardcoded three white alphas for text on the ink panel
+(`rgba(255,255,255,0.75)` and friends). In this design the ink panel
+**inverts** — it is near-black in light and near-white in dark — so those
+would have rendered white-on-white in dark mode. They are now
+`text.onInkMuted`, `text.onInkSubtle` and `surface.onInkChip`, each with a
+darkened dark-theme counterpart.
+
+That is exactly the class of bug the rule exists to prevent, and it survived
+four phases of review before a test caught it.
+
+### Dark mode swept across every screen
+
+`features/__tests__/dark-mode.test.tsx` renders all 17 data-bearing screens in
+dark and asserts the palette invariants that make the theme work — the ink
+panel and its text invert together, page and text never collapse to the same
+colour, and the tab bar stays translucent in both themes.
+
+### Definition of done
+
+| Criterion | Status |
+| --- | --- |
+| `tsc` passes | ✅ strict, with `noUncheckedIndexedAccess` |
+| Lint passes | ✅ zero warnings tolerated |
+| Tests pass | ✅ 293 across 20 suites |
+| Bundles on iOS, Android, web | ✅ all three export clean |
+| Every colour/spacing/shadow traces to a token | ✅ **enforced by test** |
+| Renders in the design typeface on all three | ✅ 7 static faces bundled, no system fallback |
+| E2E | Skipped, as instructed |
+
+The one criterion I cannot claim from here is **`npx expo start` running with
+no console errors on a device**: the dev server starts and all three
+platforms bundle, but I have not driven a simulator or handset. Gesture and
+hardware-back behaviour needs that run — see NOT_DONE_YET.md §4.
 
