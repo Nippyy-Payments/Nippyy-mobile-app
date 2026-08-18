@@ -78,7 +78,11 @@ function ThemedStack() {
         {/* The tab group. Everything below is pushed above it, which is why
             those screens have no tab bar — there is no flag hiding it. */}
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" />
         <Stack.Screen name="send" />
+        <Stack.Screen name="recipients" />
+        <Stack.Screen name="money" />
+        <Stack.Screen name="account" />
         <Stack.Screen name="transaction/[id]" />
         <Stack.Screen name="gallery" />
 

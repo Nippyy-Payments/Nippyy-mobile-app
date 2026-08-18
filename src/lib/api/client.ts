@@ -12,7 +12,13 @@ import type { ApiEnvelope, RateTable, Recipient, Transaction, Wallet } from './t
  * rather than only in tests.
  */
 
-const LATENCY_MS = 420;
+/**
+ * Simulated latency, so loading and refresh states are exercised by hand in
+ * the app. Zero under test: racing a real delay against `waitFor` makes
+ * suites fail together while passing in isolation, and the delay proves
+ * nothing about the code.
+ */
+const LATENCY_MS = process.env.NODE_ENV === 'test' ? 0 : 420;
 
 /** Flip to make every request fail, for exercising error states by hand. */
 let failNextRequests = false;

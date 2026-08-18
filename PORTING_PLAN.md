@@ -608,7 +608,7 @@ and summarise after each.
 | **3** | Navigation shell: expo-router tree, custom `TabBar` with blur, 4 tab screens as stubs, back/swipe/deep-link verified on all three | ✅ **Done** — see §16 |
 | **4** | Forms & motion: `Input`, `Keypad`, `OtpField`, `Toggle`, `ToggleRow`, `ChipGroup`, `AmountHero`, `AmountField`, `ProgressTrack`, `JourneyStrip`, `SuccessBurst` + Reanimated (§5.7–5.10) | ✅ **Done** — see §17 |
 | **5** | Home, wallets, activity, transaction detail — incl. masking, FlashList | ✅ **Done** — see §18 |
-| **6** | Send flow + onboarding (10 screens, keypad-driven) | Full send journey works end to end |
+| **6** | Send flow + onboarding (10 screens, keypad-driven) | ✅ **Done** — see §19 |
 | **7** | Money: convert, fund, rates, bills, bill pay (6 screens) | Incl. the swap button (§5.14) and the 3 fund branches |
 | **8** | Account + support (9 screens) | All 29 screens complete |
 | **9** | Polish: dark-mode sweep, a11y labels, empty/loading/error states from §8, test gaps | Definition of done met across the board |
@@ -1008,4 +1008,78 @@ screens that were not there.
 The guard was also strengthened to follow template-literal targets
 (`/transaction/${id}`, `/send?recipient=${id}`), which it previously skipped,
 and re-verified to fail on a bad path.
+
+---
+
+## 19. Phase 6 result
+
+The send flow and onboarding — ten screens, all keypad-driven. **230 tests**
+across 16 suites; `tsc`, `eslint --max-warnings 0` and all three bundles clean.
+
+### Screens
+
+`welcome`, `phone`, `otp`, `pin` (create), `verify` — and `send`,
+`send/review`, `send/pin` (the gate), `send/sending`, `send/success`.
+
+### Confirmation, per §8.13 and §8.14
+
+Every money action passes through confirmation. `lib/auth.ts` requires three
+things to hold before it offers biometrics — the user enabled it, the device
+has the hardware, and a print is enrolled — and returns `unavailable` rather
+than throwing when any fails, so the caller routes to the PIN gate. A
+cancelled or failed prompt lands there too, rather than the transfer quietly
+not happening.
+
+The button label follows: the design writes "Send £200.40 with Face ID", but
+when biometrics are not actually available the label drops the method instead
+of promising something the app cannot do.
+
+### Tier limits have one home
+
+`features/account/tiers.ts` is the only place the tier figures exist. Five
+screens quote them and the design system is explicit they must never be
+retyped. It records that the app's naira figures win over the Handoff deck's
+sterling monthly caps (§8.1) at the point of definition.
+
+### A real bug found while testing
+
+`PinScreen` originally scheduled its settle timer **inside a `setPin` state
+updater**. Updaters run during render, so that leaked a timer per render pass
+and could outlive the screen. It only surfaced because a test drove four
+presses faster than a person would.
+
+The fix separated the two concerns: the updater form keeps rapid presses from
+being dropped, and completion is detected in an effect that owns its own
+cleanup.
+
+### The PIN rules are now a pure function
+
+`pinMachine.ts` holds the two-pass confirmation logic — `settlePin`,
+`applyPinKey`, `pinCopy`. The rule that matters is that **a mismatched
+confirmation must never complete**, and it is now tested directly, with no
+renderer, timers or keypad in the way. The screen keeps only presentation and
+the 320ms settle delay.
+
+### A test-environment quirk, quarantined honestly
+
+Under this Jest setup, a test that fills a keypad leaves **the next mount in
+the same file rendering empty**. I reduced it to a minimal case: it
+reproduces with a bare `PinScreen`, and does *not* reproduce with the same
+children (`Keypad`, `OtpField`, `RowTile`, `Icon`) rendered outside the
+screen, or with `Screen` plus ordinary state updates. It is a test-renderer
+artifact rather than app behaviour — these screens mount and remount normally
+in the running app, and all three bundles build.
+
+Rather than paper over it, the affected suites put the keypad-driven render
+**last**, and the rules those tests would have covered are asserted as pure
+functions instead — so the quirk cannot hide a regression. Both files carry a
+comment saying why the ordering matters. Worth revisiting when
+`@testing-library/react-native` or `react-test-renderer` next moves.
+
+### Also worth noting
+
+`expo export` failed once with `ENOSPC` — the machine's disk was completely
+full (238G of 238G). Clearing regenerable npm/jest/metro caches freed enough
+to continue. Nothing to do with the port, but it will recur if the disk stays
+this full.
 
