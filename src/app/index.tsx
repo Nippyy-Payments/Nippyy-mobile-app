@@ -7,147 +7,231 @@ import { Avatar } from '@/components/data/Avatar';
 import { Badge } from '@/components/feedback/Badge';
 import { Button } from '@/components/core/Button';
 import { Card } from '@/components/core/Card';
+import { DetailRow } from '@/components/data/DetailRow';
+import { EmptyState, useEmptyStateIconColor } from '@/components/feedback/EmptyState';
 import { IconButton, useIconButtonForeground } from '@/components/core/IconButton';
+import { InlineAlert, useAlertIconColor } from '@/components/feedback/InlineAlert';
+import { ListRow } from '@/components/data/ListRow';
 import { MoneyText } from '@/components/data/MoneyText';
 import { RowTile, useRowTileForeground } from '@/components/data/RowTile';
+import { ScreenTitle } from '@/components/core/ScreenTitle';
+import { SectionLabel } from '@/components/core/SectionLabel';
 import { StatusDot } from '@/components/feedback/StatusDot';
+import { TransactionRow } from '@/components/data/TransactionRow';
 import { useSessionStore } from '@/store/session';
 import { useTheme } from '@/theme/ThemeProvider';
 
 /**
- * Phase 1 smoke screen.
+ * Phase 2 smoke screen.
  *
- * Exercises every primitive built so far in both themes so the phase gate is
- * verifiable by eye. Replaced by the real Home screen in phase 5.
+ * Exercises the primitives plus the row and layout components in both themes,
+ * so the phase gate is checkable by eye. Replaced by the real Home screen in
+ * phase 5.
  */
-export default function PrimitivesCheck() {
+export default function ComponentCheck() {
   const { theme, name, toggleTheme } = useTheme();
-  const { colors, spacing, radius, size } = theme;
+  const { colors, spacing, spacingRaw, size } = theme;
 
   const masked = useSessionStore((s) => s.balanceHidden);
   const toggleMasked = useSessionStore((s) => s.toggleBalanceHidden);
 
   const quietFg = useIconButtonForeground('quiet');
   const brandTileFg = useRowTileForeground('brand');
+  const dangerAlertFg = useAlertIconColor('danger');
+  const emptyFg = useEmptyStateIconColor();
 
   return (
     <Screen>
-      <Text variant="screenTitle" tone="strong">
-        Send money home in seconds
-      </Text>
-      <Text variant="body" tone="muted" style={{ marginTop: spacing.md }}>
-        See the exact rate and fee up front — no hidden spread, and it lands almost instantly.
-      </Text>
+      <ScreenTitle subhead="See the exact rate and fee up front — no hidden spread.">
+        Send money home
+      </ScreenTitle>
 
       {/* Balance + masking, the session-wide preference */}
-      <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
-        Total balance
-      </Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
-        <MoneyText variant="balanceHero" symbol="₦" symbolRatio={0.62} masked={masked}>
-          3,624,097
-        </MoneyText>
-        <View style={{ flex: 1 }} />
-        <IconButton
-          variant="quiet"
-          size="sm"
-          label={masked ? 'Show balance' : 'Hide balance'}
-          onPress={toggleMasked}
-        >
-          <Icon name={masked ? 'eyeOff' : 'eye'} size={size.icon.md} color={quietFg} />
-        </IconButton>
-      </View>
-
-      {/* Money semantics */}
-      <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
-        Money semantics
-      </Text>
-      <View style={{ rowGap: spacing.xs, marginTop: spacing.sm }}>
-        <MoneyText tone="in">+£2,400.00</MoneyText>
-        <MoneyText tone="out">-₦200,000</MoneyText>
-        <MoneyText tone="pending">-₵1,500</MoneyText>
-      </View>
-
-      {/* Identity, tiles and status */}
-      <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
-        Rows
-      </Text>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          columnGap: theme.spacingRaw.rowLeadingGap,
-          marginTop: spacing.sm,
-        }}
-      >
-        <Avatar name="Ada Okeke" flag="🇳🇬" size="md" />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text variant="bodyStrong" tone="strong">
-            Ada Okeke
-          </Text>
-          <Text variant="labelMuted" tone="muted">
-            GTBank · ···4471
-          </Text>
+      <View style={{ marginTop: spacingRaw.sectionGapMd }}>
+        <Text variant="label" tone="muted">
+          Total balance
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+          <MoneyText variant="balanceHero" symbol="₦" symbolRatio={0.62} masked={masked}>
+            3,624,097
+          </MoneyText>
+          <View style={{ flex: 1 }} />
+          <IconButton
+            variant="quiet"
+            size="sm"
+            label={masked ? 'Show balance' : 'Hide balance'}
+            onPress={toggleMasked}
+          >
+            <Icon name={masked ? 'eyeOff' : 'eye'} size={size.icon.md} color={quietFg} />
+          </IconButton>
         </View>
-        <Badge status="success" size="sm">
-          Verified
-        </Badge>
       </View>
 
+      {/* Lists, not cards: full-bleed rows divided by hairlines */}
+      <View style={{ marginTop: spacingRaw.sectionGapLg }}>
+        <SectionLabel
+          action={
+            <Button variant="ghost" size="sm">
+              See all
+            </Button>
+          }
+        >
+          Your people
+        </SectionLabel>
+
+        <ListRow
+          first
+          leading={<Avatar name="Ada Okeke" flag="🇳🇬" size="md" />}
+          title="Ada Okeke"
+          subtitle="GTBank · ···4471"
+          affordance="none"
+          trailing={
+            <Badge status="success" size="sm">
+              Verified
+            </Badge>
+          }
+          onPress={() => {}}
+        />
+        <ListRow
+          leading={<Avatar name="Kwame Mensah" flag="🇬🇭" size="md" />}
+          title="Kwame Mensah"
+          subtitle="MTN MoMo · ···7729"
+          affordance="none"
+          trailing={
+            <Badge status="warning" size="sm">
+              Verifying
+            </Badge>
+          }
+          onPress={() => {}}
+        />
+        <ListRow
+          leading={
+            <RowTile tone="brand">
+              <Icon name="rate" size={size.icon.lg} color={brandTileFg} />
+            </RowTile>
+          }
+          title="Rates and fees"
+          subtitle="What a transfer costs"
+          onPress={() => {}}
+        />
+        <ListRow
+          leading={
+            <RowTile>
+              <Icon name="doc" size={size.icon.lg} color={quietFg} />
+            </RowTile>
+          }
+          title="Privacy policy"
+          affordance="external"
+          href="https://nippyy.com/privacy-policy"
+        />
+        <ListRow
+          leading={
+            <RowTile tone="danger">
+              <Icon name="trash" size={size.icon.lg} color={colors.status.dangerText} />
+            </RowTile>
+          }
+          title="Close account"
+          subtitle="Delete your profile and recipients"
+          danger
+          onPress={() => {}}
+        />
+      </View>
+
+      {/* Activity rows */}
+      <View style={{ marginTop: spacingRaw.sectionGapLg }}>
+        <SectionLabel>Recent</SectionLabel>
+        <TransactionRow
+          first
+          name="Ada Okeke"
+          subtitle="To GTBank · 07:52"
+          amount="200,000"
+          direction="out"
+          status="success"
+          flag="🇳🇬"
+          onPress={() => {}}
+        />
+        <TransactionRow
+          name="Salary — Northwind"
+          subtitle="Received · Fri"
+          amount="2,400.00"
+          currencySymbol="£"
+          direction="in"
+          status="success"
+          flag="🇬🇧"
+          onPress={() => {}}
+        />
+        <TransactionRow
+          name="Amara Njoku"
+          subtitle="M-Pesa · Thu"
+          amount="18,000"
+          currencySymbol="KSh"
+          direction="out"
+          status="failed"
+          flag="🇰🇪"
+          onPress={() => {}}
+        />
+      </View>
+
+      {/* A genuine grouping — never around a list */}
+      <View style={{ marginTop: spacingRaw.sectionGapMd }}>
+        <SectionLabel>Breakdown</SectionLabel>
+        <Card>
+          <DetailRow label="You paid" value="£100.40" numeric divider />
+          <DetailRow label="Fee" value="£0.40" numeric divider />
+          <DetailRow label="Rate used" value="£1 = ₦1,985" numeric divider />
+          <DetailRow label="They received" value="₦200,000" numeric emphasis="money" />
+        </Card>
+      </View>
+
+      <View style={{ marginTop: spacing.lg }}>
+        <Card tone="sunken">
+          <DetailRow label="Reference" value="NP-8841-2207" numeric copyable testID="reference" />
+        </Card>
+      </View>
+
+      {/* An alert carries its own fix */}
+      <InlineAlert
+        style={{ marginTop: spacingRaw.sectionGapMd }}
+        tone="danger"
+        title="Not enough in your GBP wallet"
+        detail="You have £840.20. Add money or switch wallet."
+        icon={<Icon name="warn" size={size.icon.sm} color={dangerAlertFg} />}
+        actions={
+          <>
+            <Button size="sm" variant="secondary">
+              Add money
+            </Button>
+            <Button size="sm" variant="ghost">
+              Switch wallet
+            </Button>
+          </>
+        }
+      />
+
+      <EmptyState
+        style={{ marginTop: spacing.lg }}
+        icon={<Icon name="clock" size={size.icon['2xl']} color={emptyFg} />}
+        title="Nothing here yet"
+        body="Transfers, deposits and bill payments will show up here."
+      />
+
+      {/* Status */}
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          columnGap: theme.spacingRaw.rowLeadingGap,
+          columnGap: spacing.sm,
           marginTop: spacing.lg,
         }}
       >
-        <RowTile tone="brand">
-          <Icon name="rate" size={size.icon.lg} color={brandTileFg} />
-        </RowTile>
-        <View style={{ flex: 1 }}>
-          <Text variant="bodyStrong" tone="strong">
-            Live rates, stated up front
-          </Text>
-        </View>
         <StatusDot tone="success" pulse />
+        <Text variant="labelMuted" tone="muted">
+          Live rate · 1 GBP = 1,985 NGN
+        </Text>
       </View>
 
-      {/* Badges */}
-      <View
-        style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          columnGap: spacing.sm,
-          rowGap: spacing.sm,
-          marginTop: spacing['3xl'],
-        }}
-      >
-        <Badge status="success" dot>
-          Completed
-        </Badge>
-        <Badge status="warning" dot>
-          Pending
-        </Badge>
-        <Badge status="danger" dot>
-          Failed
-        </Badge>
-        <Badge status="neutral">Locked</Badge>
-        <Badge status="info">Current</Badge>
-      </View>
-
-      {/* Card — used for genuine groupings only, never around a list */}
-      <Card tone="sunken" style={{ marginTop: spacing['3xl'] }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text variant="caption" tone="subtle">
-            Reference
-          </Text>
-          <MoneyText variant="moneySm">NP-8841-2207</MoneyText>
-        </View>
-      </Card>
-
-      {/* One filled action; alternatives sit below in ghost or outline */}
-      <View style={{ marginTop: spacing['3xl'], rowGap: theme.spacingRaw.buttonStackGap }}>
+      {/* One filled action; alternatives sit below */}
+      <View style={{ marginTop: spacingRaw.sectionGapMd, rowGap: spacingRaw.buttonStackGap }}>
         <Button
           variant="primary"
           size="lg"
@@ -159,25 +243,10 @@ export default function PrimitivesCheck() {
         <Button variant="outline" size="md" fullWidth onPress={toggleTheme}>
           {name === 'dark' ? 'Switch to light' : 'Switch to dark'}
         </Button>
-        <Button variant="ghost" size="md" fullWidth>
-          I already have an account
-        </Button>
-        <Button variant="primary" size="md" fullWidth loading>
-          Sending
-        </Button>
-        <Button variant="primary" size="md" fullWidth disabled>
-          Enter 6 digits
+        <Button variant="quiet" size="lg" fullWidth>
+          Log out
         </Button>
       </View>
-
-      <View
-        style={{
-          marginTop: spacing.xl,
-          height: size.tile.lg,
-          borderRadius: radius.tile,
-          backgroundColor: colors.surface.quiet,
-        }}
-      />
     </Screen>
   );
 }

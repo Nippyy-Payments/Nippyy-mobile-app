@@ -600,7 +600,7 @@ and summarise after each.
 | --- | --- | --- |
 | **0** | Scaffold: Expo 57 + TS strict + New Arch, NativeWind wired to `tokens.ts`, fonts loading, theme provider, web column, Jest | ✅ **Done** — see §13 |
 | **1** | Primitives: `Text`, `Icon` (~40 paths), `Screen`, `MoneyText`, `Button`, `IconButton`, `Card`, `Badge`, `StatusDot`, `RowTile`, `Avatar` + tests | ✅ **Done** — see §14 |
-| **2** | Layout & data components: `ScreenHeader`, `ScreenTitle`, `SectionLabel`, `ListRow`, `TransactionRow`, `DetailRow`, `EmptyState`, `InlineAlert` | Full-bleed rows and hairline dividers match the design |
+| **2** | Layout & data components: `ScreenHeader`, `ScreenTitle`, `SectionLabel`, `ListRow`, `TransactionRow`, `DetailRow`, `EmptyState`, `InlineAlert` | ✅ **Done** — see §15 |
 | **3** | Navigation shell: expo-router tree, custom `TabBar` with blur, 4 tab screens as stubs, back/swipe/deep-link verified on all three | All navigation rules in §7 demonstrably hold |
 | **4** | Forms & motion: `Input`, `Keypad`, `OtpField`, `Toggle`, `ToggleRow`, `ChipGroup`, `AmountHero`, `AmountField`, `ProgressTrack`, `JourneyStrip`, `SuccessBurst` + Reanimated (§5.7–5.10) | Motion matches the documented timings |
 | **5** | Home, wallets, activity, transaction detail — incl. masking, FlashList | 4 screens pixel-matched |
@@ -737,4 +737,63 @@ suites; `tsc`, `eslint --max-warnings 0` and web/iOS/Android bundles all clean.
 
 `src/app/index.tsx` is still a smoke screen — now exercising every primitive
 in both themes. Navigation arrives in phase 3; the real Home screen in phase 5.
+
+---
+
+## 15. Phase 2 result
+
+Eight layout and data components. **104 tests** across 8 suites; `tsc`,
+`eslint --max-warnings 0` and web/iOS/Android bundles all clean.
+
+### Built
+
+| Component | Notes |
+| --- | --- |
+| `ScreenTitle` | 34px root title + optional subhead |
+| `ScreenHeader` | 20px pushed title; back target defaults to `router.back()` |
+| `SectionLabel` | 13/600 muted, optional trailing action |
+| `ListRow` | Full-bleed, 3 affordances, danger tone, external links |
+| `TransactionRow` | Direction sign + colour, status badge |
+| `DetailRow` | Label/value, copy-to-clipboard with confirmed state |
+| `EmptyState` | Sunken circle, heading, one line, optional fallback rows |
+| `InlineAlert` | 4 tones, optional attached actions |
+
+### The full-bleed row, resolved
+
+The design widens a row to `calc(100% + 48px)` and pulls it back with a
+negative margin so it reaches the screen edge while its content stays on the
+gutter. In RN that is a negative horizontal margin plus matching padding — no
+width calculation, and it composes with any gutter. `ListRow` and
+`TransactionRow` both take a `gutter` prop so the 20px settings screens and
+the 22px Bills screen bleed correctly too.
+
+### A finding: `DetailRow`'s `numeric` prop does nothing
+
+The source switches the value to `--font-mono` when `numeric` is set. **In
+this design `--font-mono` and `--font-sans` are the same family** — Space
+Grotesk, chosen precisely because its figures are already even-width — and
+the source applies `tabular-nums` to the value either way. So the prop has no
+visible effect in the shipping design.
+
+I kept it, because call sites still want to state intent and it is the natural
+hook if a second family ever arrives, but it is documented as inert rather
+than left looking meaningful. **Worth a decision:** drop it, or keep it as
+documentation?
+
+### Deviation from the source worth confirming
+
+`DetailRow` owns its copied state internally and flips "Copy" to "Copied"
+permanently, matching the source's behaviour (the source never resets it). It
+also actually writes to the clipboard via `expo-clipboard`, which the static
+design could only imply. If you want the label to revert after a few seconds,
+that is a one-line change.
+
+### Two test-harness notes
+
+- **`jest.mock` factories may only close over names beginning with `mock`.**
+  Jest hoists the call above every declaration, so a plain `const back` in the
+  factory is a compile error, not a runtime one.
+- **React 19 needs `globalThis.IS_REACT_ACT_ENVIRONMENT = true`.** Without it
+  any state update from an async handler warns even when correctly awaited —
+  as `DetailRow`'s clipboard write does.
 
