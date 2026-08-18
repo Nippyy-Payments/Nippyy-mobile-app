@@ -2,6 +2,7 @@ import { View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
+import { ScreenHeader } from '@/components/core/ScreenHeader';
 import { Text } from '@/components/Text';
 import { Avatar } from '@/components/data/Avatar';
 import { Badge } from '@/components/feedback/Badge';
@@ -22,13 +23,14 @@ import { useSessionStore } from '@/store/session';
 import { useTheme } from '@/theme/ThemeProvider';
 
 /**
- * Phase 2 smoke screen.
+ * Component gallery.
  *
- * Exercises the primitives plus the row and layout components in both themes,
- * so the phase gate is checkable by eye. Replaced by the real Home screen in
- * phase 5.
+ * Every primitive and row component in one place, in whichever theme is
+ * active, so a change can be eyeballed without walking the app. Reachable
+ * from Home and from Account; it is a pushed screen, so it also serves as a
+ * live check that back, swipe-back and browser-back all work.
  */
-export default function ComponentCheck() {
+export default function ComponentGallery() {
   const { theme, name, toggleTheme } = useTheme();
   const { colors, spacing, spacingRaw, size } = theme;
 
@@ -41,9 +43,9 @@ export default function ComponentCheck() {
   const emptyFg = useEmptyStateIconColor();
 
   return (
-    <Screen>
-      <ScreenTitle subhead="See the exact rate and fee up front — no hidden spread.">
-        Send money home
+    <Screen header={<ScreenHeader title="Component gallery" />}>
+      <ScreenTitle subhead="Every primitive, rendered in the active theme.">
+        Components
       </ScreenTitle>
 
       {/* Balance + masking, the session-wide preference */}

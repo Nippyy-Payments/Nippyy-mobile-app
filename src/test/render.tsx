@@ -1,12 +1,27 @@
 import { render, type RenderOptions } from '@testing-library/react-native';
 import type { ReactElement, ReactNode } from 'react';
+import { SafeAreaProvider, type Metrics } from 'react-native-safe-area-context';
 
 import { useSessionStore } from '@/store/session';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 import type { ThemeName } from '@/theme/tokens';
 
+/**
+ * Fixed insets so anything positioned against the safe area (the tab bar, the
+ * Screen container) lays out deterministically rather than at whatever the
+ * host reports. Modelled on a notched phone.
+ */
+const METRICS: Metrics = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
+
 function Wrapper({ children }: { children: ReactNode }) {
-  return <ThemeProvider>{children}</ThemeProvider>;
+  return (
+    <SafeAreaProvider initialMetrics={METRICS}>
+      <ThemeProvider>{children}</ThemeProvider>
+    </SafeAreaProvider>
+  );
 }
 
 /**

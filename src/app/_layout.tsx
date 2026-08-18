@@ -70,10 +70,22 @@ function ThemedStack() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: theme.colors.surface.page },
-          // iOS swipe-back must work on every pushed screen.
+          // iOS swipe-back must work on every pushed screen. This is never
+          // set to false, here or in any nested layout.
           gestureEnabled: true,
         }}
-      />
+      >
+        {/* The tab group. Everything below is pushed above it, which is why
+            those screens have no tab bar — there is no flag hiding it. */}
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="send" />
+        <Stack.Screen name="transaction/[id]" />
+        <Stack.Screen name="gallery" />
+
+        {/* Modal presentation, so back and the dismiss gesture both work
+            without any custom handling. */}
+        <Stack.Screen name="wallet-picker" options={{ presentation: 'modal' }} />
+      </Stack>
     </>
   );
 }
