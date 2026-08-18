@@ -53,6 +53,7 @@ export type MoneyTextProps = {
   symbolRatio?: number;
   numberOfLines?: number;
   style?: StyleProp<TextStyle>;
+  testID?: string;
 };
 
 /** What a masked balance shows in place of the figure. */
@@ -78,6 +79,7 @@ export function MoneyText({
   symbolRatio = moneySymbolRatio.default,
   numberOfLines,
   style,
+  testID,
 }: MoneyTextProps) {
   const { colors, fontFamily } = useTokens();
 
@@ -95,7 +97,7 @@ export function MoneyText({
   const figureSize = textStyles[variant].fontSize ?? 0;
 
   return (
-    <Text variant={variant} numberOfLines={numberOfLines} style={[{ color }, style]}>
+    <Text variant={variant} numberOfLines={numberOfLines} testID={testID} style={[{ color }, style]}>
       {symbol && !masked ? (
         <Text
           variant={variant}

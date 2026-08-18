@@ -607,7 +607,7 @@ and summarise after each.
 | **2** | Layout & data components: `ScreenHeader`, `ScreenTitle`, `SectionLabel`, `ListRow`, `TransactionRow`, `DetailRow`, `EmptyState`, `InlineAlert` | ✅ **Done** — see §15 |
 | **3** | Navigation shell: expo-router tree, custom `TabBar` with blur, 4 tab screens as stubs, back/swipe/deep-link verified on all three | ✅ **Done** — see §16 |
 | **4** | Forms & motion: `Input`, `Keypad`, `OtpField`, `Toggle`, `ToggleRow`, `ChipGroup`, `AmountHero`, `AmountField`, `ProgressTrack`, `JourneyStrip`, `SuccessBurst` + Reanimated (§5.7–5.10) | ✅ **Done** — see §17 |
-| **5** | Home, wallets, activity, transaction detail — incl. masking, FlashList | 4 screens pixel-matched |
+| **5** | Home, wallets, activity, transaction detail — incl. masking, FlashList | ✅ **Done** — see §18 |
 | **6** | Send flow + onboarding (10 screens, keypad-driven) | Full send journey works end to end |
 | **7** | Money: convert, fund, rates, bills, bill pay (6 screens) | Incl. the swap button (§5.14) and the 3 fund branches |
 | **8** | Account + support (9 screens) | All 29 screens complete |
@@ -940,4 +940,72 @@ code and pass on incorrect code depending on when the file was last written.
 instead by `navigation-rules.test.ts`, which checks every `router.push` target
 against the filesystem — verified to fail on a bad path, and unaffected by
 typegen state. Worth re-enabling if a later SDK fixes the scan.
+
+---
+
+## 18. Phase 5 result
+
+Home, Wallets, Activity and Transaction detail, on a real data layer.
+**203 tests** across 14 suites; `tsc`, `eslint --max-warnings 0` and all three
+bundles clean.
+
+### The data layer
+
+| File | Role |
+| --- | --- |
+| `lib/api/types.ts` | `Wallet` matches the real endpoint shape exactly (§8.7); the rest are modelled from the design's own figures |
+| `lib/api/client.ts` | The only place fixtures exist. Simulates latency so loading states are exercised in the app, and exposes `__setApiFailure` for driving error states by hand |
+| `lib/api/queries.ts` | React Query hooks, plus `totalInHomeCurrency` and `primaryWallet` |
+| `lib/currency.ts` | Flag, display name, symbol, capability copy, decimal scale — everything the server does not send |
+| `lib/format.ts` | Money formatting that never converts a balance to a float |
+
+Screens and hooks never see fixtures, so swapping in live endpoints is a
+change in `client.ts` and nowhere else.
+
+### Money stays a string
+
+`formatAmount` groups and pads without parsing. There is a test pinning
+`'8311.51'` specifically, because that value round-trips through a float as
+`8311.509999…` — which is exactly how a balance ends up wrong on screen.
+Addition goes through `sumAmounts`, which works in minor units.
+
+### States the design never defined, now built
+
+| State | How, without inventing a new visual language |
+| --- | --- |
+| Loading | `Skeleton` — the sunken surface the app already uses, breathing. Nothing shimmers, because nothing else in this app shimmers. Spinners stay for indeterminate work (the `Button`) |
+| Error | `ErrorState` — the `EmptyState` column, a warning glyph, one filled retry. nippyy's voice rule applies: errors explain and fix, so the retry is part of the state |
+| Empty | `EmptyState` for no wallets, and for a filter that matches nothing (distinct copy from a genuinely empty history) |
+| Refresh | Pull-to-refresh on Home, Wallets and Activity |
+
+### The client-side total, and a caveat
+
+The wallets endpoint returns per-wallet balances only, so the naira total is
+summed on the client through the rate table. **If the server ever returns a
+total, it should win** — a client-side sum can disagree with the ledger the
+moment a rate moves. Noted in `queries.ts` at the function.
+
+### FlashList
+
+Only Activity is virtualised. Notifications will be the second. Everything
+else is a short fixed stack (5 wallets, 4 recipients) where FlashList costs
+more than it saves.
+
+In tests it is aliased to `FlatList`. FlashList schedules a load callback
+through `requestAnimationFrame` that can fire after teardown, producing an
+`act()` warning that **intermittently failed the whole suite** — one run
+reported a failed suite with zero failed tests. The rows under test are still
+the real components. Verified stable across three consecutive full runs.
+
+### Placeholder routes
+
+`/recipients`, `/money/fund`, `/money/convert`, `/money/bills`,
+`/money/rates` and `/account/notifications` now exist as real routes with a
+"coming shortly" state. They are built in phases 7 and 8; they exist now
+because the route guard correctly refused to let Home and Wallets link to
+screens that were not there.
+
+The guard was also strengthened to follow template-literal targets
+(`/transaction/${id}`, `/send?recipient=${id}`), which it previously skipped,
+and re-verified to fail on a bad path.
 

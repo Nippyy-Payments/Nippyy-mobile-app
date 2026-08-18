@@ -18,3 +18,14 @@ jest.mock('expo-splash-screen', () => ({
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
+
+/**
+ * FlashList schedules a load callback through requestAnimationFrame, which can
+ * fire after a test has torn down and produce an act() warning that
+ * intermittently fails the suite. Its virtualisation adds nothing under test,
+ * so it is aliased to FlatList, whose props we already use compatibly. The
+ * rows themselves are still the real components.
+ */
+jest.mock('@shopify/flash-list', () => ({
+  FlashList: require('react-native').FlatList,
+}));

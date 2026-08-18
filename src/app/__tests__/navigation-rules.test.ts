@@ -75,26 +75,45 @@ describe('navigation contract', () => {
   });
 
   it('routes every push to a file that exists', () => {
-    const known = new Set(
-      routeFiles
-        .map((f) => rel(f).replace(/^app\//, '').replace(/\.tsx?$/, ''))
-        // Route groups do not appear in the URL.
-        .map((p) => p.replace(/\([^)]+\)\//g, ''))
-        .map((p) => (p.endsWith('/index') ? p.slice(0, -'/index'.length) : p))
-        .map((p) => (p === 'index' ? '' : p))
-    );
+    const known = [
+      ...new Set(
+        routeFiles
+          .map((f) => rel(f).replace(/^app\//, '').replace(/\.tsx?$/, ''))
+          // Route groups do not appear in the URL.
+          .map((p) => p.replace(/\([^)]+\)\//g, ''))
+          .map((p) => (p.endsWith('/index') ? p.slice(0, -'/index'.length) : p))
+          .map((p) => (p === 'index' ? '' : p))
+      ),
+    ];
 
     const missing: string[] = [];
+
     for (const file of sourceFiles) {
-      const pushes = read(file).matchAll(/router\.(?:push|replace|navigate)\('([^']+)'\)/g);
-      for (const [, href] of pushes) {
-        if (!href) continue;
-        const path = href.replace(/^\//, '');
-        // A dynamic segment matches any concrete value in that position.
-        const matched = [...known].some((route) => {
-          const pattern = new RegExp(`^${route.replace(/\[[^\]]+\]/g, '[^/]+')}$`);
-          return pattern.test(path);
+      const source = read(file);
+      const targets = [
+        // A plain string target.
+        ...[...source.matchAll(/router\.(?:push|replace|navigate)\('([^']+)'\)/g)].map(
+          ([, href]) => ({ href: href ?? '', partial: false })
+        ),
+        // A template literal, whose static prefix names the route and whose
+        // dynamic tail is the param or query — `/transaction/${id}`.
+        ...[...source.matchAll(/router\.(?:push|replace|navigate)\(`([^`$]*)\$\{/g)].map(
+          ([, href]) => ({ href: href ?? '', partial: true })
+        ),
+      ];
+
+      for (const { href, partial } of targets) {
+        const path = href.replace(/^\//, '').replace(/\?.*$/, '').replace(/\/$/, '');
+
+        const matched = known.some((route) => {
+          const pattern = route.replace(/\[[^\]]+\]/g, '[^/]+');
+          // A partial target only fixes a prefix; the dynamic tail supplies
+          // the rest, so the route may legitimately be longer.
+          return partial
+            ? new RegExp(`^${pattern}`).test(path) || new RegExp(`^${path}`).test(route)
+            : new RegExp(`^${pattern}$`).test(path);
         });
+
         if (!matched) missing.push(`${rel(file)} -> ${href}`);
       }
     }
