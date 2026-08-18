@@ -1,30 +1,37 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 
+import { Icon } from '@/components/Icon';
+import { Screen } from '@/components/Screen';
 import { Text } from '@/components/Text';
+import { Avatar } from '@/components/data/Avatar';
+import { Badge } from '@/components/feedback/Badge';
+import { Button } from '@/components/core/Button';
+import { Card } from '@/components/core/Card';
+import { IconButton, useIconButtonForeground } from '@/components/core/IconButton';
+import { MoneyText } from '@/components/data/MoneyText';
+import { RowTile, useRowTileForeground } from '@/components/data/RowTile';
+import { StatusDot } from '@/components/feedback/StatusDot';
+import { useSessionStore } from '@/store/session';
 import { useTheme } from '@/theme/ThemeProvider';
 
 /**
- * Phase 0 smoke screen.
+ * Phase 1 smoke screen.
  *
- * Verifies the scaffold end to end: both typefaces render, the type scale
- * resolves, tokens drive every value, and the theme switch works. Replaced by
- * the real Home screen in phase 5.
+ * Exercises every primitive built so far in both themes so the phase gate is
+ * verifiable by eye. Replaced by the real Home screen in phase 5.
  */
-export default function ScaffoldCheck() {
+export default function PrimitivesCheck() {
   const { theme, name, toggleTheme } = useTheme();
-  const { colors, spacing, gutter, radius, size, borderWidth } = theme;
-  const insets = useSafeAreaInsets();
+  const { colors, spacing, radius, size } = theme;
+
+  const masked = useSessionStore((s) => s.balanceHidden);
+  const toggleMasked = useSessionStore((s) => s.toggleBalanceHidden);
+
+  const quietFg = useIconButtonForeground('quiet');
+  const brandTileFg = useRowTileForeground('brand');
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.surface.page }}
-      contentContainerStyle={{
-        paddingTop: insets.top + spacing.lg,
-        paddingBottom: insets.bottom + spacing['4xl'],
-        paddingHorizontal: gutter.default,
-      }}
-    >
+    <Screen>
       <Text variant="screenTitle" tone="strong">
         Send money home in seconds
       </Text>
@@ -32,96 +39,145 @@ export default function ScaffoldCheck() {
         See the exact rate and fee up front — no hidden spread, and it lands almost instantly.
       </Text>
 
+      {/* Balance + masking, the session-wide preference */}
       <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
-        Montserrat — display
+        Total balance
       </Text>
-      <Text variant="screenHeader" tone="strong">
-        Review transfer
-      </Text>
-      <Text variant="flowTitle" tone="strong">
-        Create a PIN
-      </Text>
-      <Text variant="cardTitle" tone="strong">
-        Face ID unlock
-      </Text>
-
-      <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
-        Space Grotesk — UI text
-      </Text>
-      <Text variant="bodyStrong" tone="strong">
-        Ada Okeke
-      </Text>
-      <Text variant="labelMuted" tone="muted">
-        GTBank · ···4471
-      </Text>
-      <Text variant="caption" tone="subtle">
-        0.4% fee · arrives in seconds
-      </Text>
-
-      <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
-        Space Grotesk — money, tabular figures
-      </Text>
-      <Text variant="balanceHero" tone="strong">
-        ₦3,624,097
-      </Text>
-      <View style={{ marginTop: spacing.sm }}>
-        <Text variant="money" style={{ color: colors.money.in }}>
-          +£2,400.00
-        </Text>
-        <Text variant="money" style={{ color: colors.money.out }}>
-          -₦200,000
-        </Text>
-        <Text variant="money" style={{ color: colors.money.pending }}>
-          -₵1,500
-        </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+        <MoneyText variant="balanceHero" symbol="₦" symbolRatio={0.62} masked={masked}>
+          3,624,097
+        </MoneyText>
+        <View style={{ flex: 1 }} />
+        <IconButton
+          variant="quiet"
+          size="sm"
+          label={masked ? 'Show balance' : 'Hide balance'}
+          onPress={toggleMasked}
+        >
+          <Icon name={masked ? 'eyeOff' : 'eye'} size={size.icon.md} color={quietFg} />
+        </IconButton>
       </View>
 
+      {/* Money semantics */}
       <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
-        Surfaces and hairlines
+        Money semantics
       </Text>
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
-        {(
-          [
-            ['quiet', colors.surface.quiet],
-            ['sunken', colors.surface.sunken],
-            ['brand', colors.brand.soft],
-          ] as const
-        ).map(([label, background]) => (
-          <View
-            key={label}
-            style={{
-              flex: 1,
-              height: size.tile.lg,
-              borderRadius: radius.tile,
-              backgroundColor: background,
-              borderWidth: borderWidth.hairline,
-              borderColor: colors.border.subtle,
-            }}
-          />
-        ))}
+      <View style={{ rowGap: spacing.xs, marginTop: spacing.sm }}>
+        <MoneyText tone="in">+£2,400.00</MoneyText>
+        <MoneyText tone="out">-₦200,000</MoneyText>
+        <MoneyText tone="pending">-₵1,500</MoneyText>
       </View>
 
-      <Pressable
-        onPress={toggleTheme}
-        style={({ pressed }) => [
-          styles.action,
-          {
-            height: size.button.lg,
-            borderRadius: radius.button.lg,
-            backgroundColor: colors.brand.default,
-            marginTop: spacing['3xl'],
-            opacity: pressed ? 0.9 : 1,
-          },
-        ]}
+      {/* Identity, tiles and status */}
+      <Text variant="label" tone="muted" style={{ marginTop: spacing['3xl'] }}>
+        Rows
+      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          columnGap: theme.spacingRaw.rowLeadingGap,
+          marginTop: spacing.sm,
+        }}
       >
-        <Text variant="buttonLg" style={{ color: colors.brand.onBrand }}>
+        <Avatar name="Ada Okeke" flag="🇳🇬" size="md" />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text variant="bodyStrong" tone="strong">
+            Ada Okeke
+          </Text>
+          <Text variant="labelMuted" tone="muted">
+            GTBank · ···4471
+          </Text>
+        </View>
+        <Badge status="success" size="sm">
+          Verified
+        </Badge>
+      </View>
+
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          columnGap: theme.spacingRaw.rowLeadingGap,
+          marginTop: spacing.lg,
+        }}
+      >
+        <RowTile tone="brand">
+          <Icon name="rate" size={size.icon.lg} color={brandTileFg} />
+        </RowTile>
+        <View style={{ flex: 1 }}>
+          <Text variant="bodyStrong" tone="strong">
+            Live rates, stated up front
+          </Text>
+        </View>
+        <StatusDot tone="success" pulse />
+      </View>
+
+      {/* Badges */}
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          columnGap: spacing.sm,
+          rowGap: spacing.sm,
+          marginTop: spacing['3xl'],
+        }}
+      >
+        <Badge status="success" dot>
+          Completed
+        </Badge>
+        <Badge status="warning" dot>
+          Pending
+        </Badge>
+        <Badge status="danger" dot>
+          Failed
+        </Badge>
+        <Badge status="neutral">Locked</Badge>
+        <Badge status="info">Current</Badge>
+      </View>
+
+      {/* Card — used for genuine groupings only, never around a list */}
+      <Card tone="sunken" style={{ marginTop: spacing['3xl'] }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text variant="caption" tone="subtle">
+            Reference
+          </Text>
+          <MoneyText variant="moneySm">NP-8841-2207</MoneyText>
+        </View>
+      </Card>
+
+      {/* One filled action; alternatives sit below in ghost or outline */}
+      <View style={{ marginTop: spacing['3xl'], rowGap: theme.spacingRaw.buttonStackGap }}>
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          iconLeft={<Icon name="send" size={size.icon.md} color={colors.text.onBrand} />}
+        >
+          Send money
+        </Button>
+        <Button variant="outline" size="md" fullWidth onPress={toggleTheme}>
           {name === 'dark' ? 'Switch to light' : 'Switch to dark'}
-        </Text>
-      </Pressable>
-    </ScrollView>
+        </Button>
+        <Button variant="ghost" size="md" fullWidth>
+          I already have an account
+        </Button>
+        <Button variant="primary" size="md" fullWidth loading>
+          Sending
+        </Button>
+        <Button variant="primary" size="md" fullWidth disabled>
+          Enter 6 digits
+        </Button>
+      </View>
+
+      <View
+        style={{
+          marginTop: spacing.xl,
+          height: size.tile.lg,
+          borderRadius: radius.tile,
+          backgroundColor: colors.surface.quiet,
+        }}
+      />
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  action: { alignItems: 'center', justifyContent: 'center' },
-});

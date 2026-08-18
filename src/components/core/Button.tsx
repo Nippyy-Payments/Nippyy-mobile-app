@@ -42,6 +42,11 @@ export type ButtonProps = {
   iconRight?: ReactNode;
   onPress?: () => void;
   accessibilityLabel?: string;
+  /**
+   * Applied to the pressable. The painted surface is a child (it carries the
+   * press animation), and is exposed as `<testID>-surface` so a test can
+   * assert its fill, radius and height.
+   */
   testID?: string;
   style?: StyleProp<ViewStyle>;
 };
@@ -122,6 +127,7 @@ export function Button({
       style={fullWidth ? styles.fullWidth : styles.auto}
     >
       <Animated.View
+        testID={testID ? `${testID}-surface` : undefined}
         style={[
           styles.base,
           {

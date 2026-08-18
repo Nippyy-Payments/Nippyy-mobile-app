@@ -599,7 +599,7 @@ and summarise after each.
 | Phase | Scope | Done when |
 | --- | --- | --- |
 | **0** | Scaffold: Expo 57 + TS strict + New Arch, NativeWind wired to `tokens.ts`, fonts loading, theme provider, web column, Jest | ✅ **Done** — see §13 |
-| **1** | Primitives: `Text`, `Icon` (~40 paths), `Screen`, `MoneyText`, `Button`, `IconButton`, `Card`, `Badge`, `StatusDot`, `RowTile`, `Avatar` + tests | Every primitive renders in both themes with all variants |
+| **1** | Primitives: `Text`, `Icon` (~40 paths), `Screen`, `MoneyText`, `Button`, `IconButton`, `Card`, `Badge`, `StatusDot`, `RowTile`, `Avatar` + tests | ✅ **Done** — see §14 |
 | **2** | Layout & data components: `ScreenHeader`, `ScreenTitle`, `SectionLabel`, `ListRow`, `TransactionRow`, `DetailRow`, `EmptyState`, `InlineAlert` | Full-bleed rows and hairline dividers match the design |
 | **3** | Navigation shell: expo-router tree, custom `TabBar` with blur, 4 tab screens as stubs, back/swipe/deep-link verified on all three | All navigation rules in §7 demonstrably hold |
 | **4** | Forms & motion: `Input`, `Keypad`, `OtpField`, `Toggle`, `ToggleRow`, `ChipGroup`, `AmountHero`, `AmountField`, `ProgressTrack`, `JourneyStrip`, `SuccessBurst` + Reanimated (§5.7–5.10) | Motion matches the documented timings |
@@ -680,4 +680,61 @@ newest published version.
 `src/app/index.tsx` is a scaffold smoke screen, not the Home screen. It
 exercises both typefaces, the type scale, money tones, surfaces and the theme
 switch so the phase gate is verifiable. Phase 5 replaces it.
+
+---
+
+## 14. Phase 1 result
+
+Eleven primitives built, all driven by tokens. 64 tests passing across 6
+suites; `tsc`, `eslint --max-warnings 0` and web/iOS/Android bundles all clean.
+
+### Built
+
+| Component | Notes |
+| --- | --- |
+| `Icon` + `icons` | **57 glyphs**, not the ~40 estimated — the count grew once component-internal icons (back arrow, chevrons, external, backspace, search, share), the 4 tab icons, 6 bill categories and 4 social marks were included |
+| `MoneyText` | 7 tones, masking, scaled currency symbol |
+| `Button` | 7 variants x 3 sizes, loading spinner, press scale |
+| `IconButton` | 6 variants x 3 sizes, rounded/circle |
+| `Card` | 5 tones x 4 paddings |
+| `Badge` | 6 statuses x 3 appearances x 3 sizes, optional dot |
+| `StatusDot` | 5 tones, pulse |
+| `RowTile` | 6 tones |
+| `Avatar` | 5 sizes, deterministic tint, flag badge |
+| `Screen` | Safe area, gutter, scroll, pull-to-refresh, fixed header slot |
+
+### Decisions made while building
+
+1. **Icons take an explicit colour.** React Native SVG has no `currentColor`,
+   so colour cannot cascade from a parent the way the design assumes. Rather
+   than have call sites guess, the tone-bearing components export a matching
+   foreground hook — `useRowTileForeground('brand')`,
+   `useIconButtonForeground('quiet')` — so a tile and its glyph can never
+   drift apart.
+2. **`MoneyText` spaces its currency symbol with trailing letter-spacing.**
+   The design uses `margin-right: 2px` on a nested span; margin on nested
+   `Text` is unreliable in RN, and a space character is far too wide at 46px.
+   Letter-spacing applies after the final glyph in RN exactly as in CSS.
+3. **`StatusDot`'s pulse is a real ring.** The source animates `box-shadow`
+   spread, which RN cannot express. An expanding, fading sibling circle reads
+   identically — as planned in §5.8.
+4. **`Button` exposes its painted surface as `<testID>-surface`.** The fill,
+   radius and height live on an inner animated view, so tests assert against a
+   named seam rather than walking the child tree.
+
+### Two toolchain findings
+
+- **Reanimated 4 needs `react-native-worklets/jest/resolver.js`.** Without it
+  every suite touching Reanimated dies on `loadUnpackers` — worklets' native
+  entry expects the native runtime. The resolver (shipped by worklets) drops
+  the `.native` extension under Jest. Using it means tests run against real
+  Reanimated rather than a mock.
+- **Never render in a loop with RNTL 14.** Sequential `await render(...)`
+  calls leave overlapping `act()` scopes and poison the *whole* suite, not
+  just the offending test. Render the set in one pass instead.
+
+### Not yet wired
+
+`src/app/index.tsx` is still a smoke screen — now exercising every primitive
+in both themes. Navigation arrives in phase 3; the real Home screen in phase 5.
 

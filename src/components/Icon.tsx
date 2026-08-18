@@ -18,6 +18,7 @@ export type IconProps = {
    * a heavier stroke — the back arrow (2.1) and the chevrons (2).
    */
   strokeWidth?: number;
+  testID?: string;
 };
 
 /**
@@ -26,14 +27,14 @@ export type IconProps = {
  * Stroke, fill and joins are set once on a wrapping `G` so registry entries
  * stay pure path data; only genuinely filled shapes override them.
  */
-export function Icon({ name, size, color, strokeWidth = 1.9 }: IconProps) {
+export function Icon({ name, size, color, strokeWidth = 1.9, testID }: IconProps) {
   const { colors, size: sizes } = useTokens();
 
   const box = size ?? sizes.icon.lg;
   const stroke = color ?? colors.text.body;
 
   return (
-    <Svg width={box} height={box} viewBox="0 0 24 24" fill="none">
+    <Svg testID={testID} width={box} height={box} viewBox="0 0 24 24" fill="none">
       <G
         stroke={stroke}
         strokeWidth={strokeWidth}
