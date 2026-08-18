@@ -598,7 +598,7 @@ and summarise after each.
 
 | Phase | Scope | Done when |
 | --- | --- | --- |
-| **0** | Scaffold: Expo 57 + TS strict + New Arch, NativeWind wired to `tokens.ts`, fonts loading, theme provider, web column, Jest | Blank themed screen renders in the real typeface on all three platforms |
+| **0** | Scaffold: Expo 57 + TS strict + New Arch, NativeWind wired to `tokens.ts`, fonts loading, theme provider, web column, Jest | ✅ **Done** — see §13 |
 | **1** | Primitives: `Text`, `Icon` (~40 paths), `Screen`, `MoneyText`, `Button`, `IconButton`, `Card`, `Badge`, `StatusDot`, `RowTile`, `Avatar` + tests | Every primitive renders in both themes with all variants |
 | **2** | Layout & data components: `ScreenHeader`, `ScreenTitle`, `SectionLabel`, `ListRow`, `TransactionRow`, `DetailRow`, `EmptyState`, `InlineAlert` | Full-bleed rows and hairline dividers match the design |
 | **3** | Navigation shell: expo-router tree, custom `TabBar` with blur, 4 tab screens as stubs, back/swipe/deep-link verified on all three | All navigation rules in §7 demonstrably hold |
@@ -623,3 +623,61 @@ All 20 design questions are resolved (§8). Deferred work is tracked in
 Outstanding, non-blocking: the 9 items in §4 "Token values to reconsider".
 I am proceeding with the tokens as extracted — they are faithful to the
 source. Say the word on any of them and it is a single-file change.
+
+---
+
+## 13. Phase 0 result
+
+Scaffold complete and verified on all three platforms.
+
+### Verified
+
+| Gate | Result |
+| --- | --- |
+| `tsc --noEmit` (strict, `noUncheckedIndexedAccess`) | Clean |
+| `eslint . --max-warnings 0` | Clean |
+| `jest` | 23 passing, 3 suites |
+| `expo export --platform web` | Builds |
+| `expo export --platform ios --platform android` | Builds |
+| Fonts in web bundle | 7 TTFs, correct families |
+| Fonts in native bundle | 7 TTFs present (hash-named, extensionless) |
+| Both themes in generated CSS | 68 variables each |
+
+### Version deviations from the plan's §10 table
+
+The stack is as specified; these are patch-level corrections made because
+Expo SDK 57 pins a tested combination and I aligned to it rather than to the
+newest published version.
+
+| Package | Planned | Actual | Why |
+| --- | --- | --- | --- |
+| `typescript` | 5.9 | **6.0.3** | SDK 57 expects TS 6 |
+| `react` / `react-dom` | 19.2 | **19.2.3** | RN 0.86.2 peer-requires `^19.2.3` |
+| `react-native-gesture-handler` | 3.2.1 | **2.32.0** | SDK 57 pins v2; v3 is untested against it |
+| `@shopify/flash-list` | 2.3.2 | **2.0.2** | SDK 57 pin. Still v2, as specified |
+| `react-native-reanimated` | 4.5.3 | **4.5.1** | SDK 57 pin. Still v4, as specified |
+| `@react-native-async-storage/async-storage` | 3.1.1 | **2.2.0** | SDK 57 pin |
+| `react-test-renderer` | — | **removed**, replaced by `test-renderer` 1.2.0 | React 19 dropped it from core; RNTL 14 peer-requires the standalone package |
+
+`npx expo install --check` reports **"Dependencies are up to date."**
+
+### Three things worth knowing
+
+1. **`render()` is asynchronous in React Native Testing Library 14.** It
+   returns a Promise, so every test must `await` it. The shared helper in
+   `src/test/render.tsx` handles this; call sites just need `await`.
+2. **Font packages must be deep-imported.** A named import from
+   `@expo-google-fonts/montserrat` pulls all 23 faces — italics included —
+   into the bundle (~6.4MB of assets). Importing the seven `.ttf` files
+   directly drops that to 1.4MB. `src/theme/fonts.ts` documents this so it is
+   not "tidied" back later.
+3. **`npx expo install --fix` crashes** in this install (`Cannot find module
+   './utils/autoAddConfigPlugins.js'` inside `@expo/cli`). Versions were
+   pinned by hand instead. `--check` works fine; only `--fix` is affected.
+
+### Deliberately not built yet
+
+`src/app/index.tsx` is a scaffold smoke screen, not the Home screen. It
+exercises both typefaces, the type scale, money tones, surfaces and the theme
+switch so the phase gate is verifiable. Phase 5 replaces it.
+

@@ -214,7 +214,7 @@ export type ColorTokens = {
     pending: string;
   };
   /** Deterministic avatar tints, indexed by a hash of the name. */
-  avatar: ReadonlyArray<{ bg: string; fg: string }>;
+  avatar: readonly { bg: string; fg: string }[];
   chrome: {
     /** The one translucent surface in the system. */
     tabBar: string;
