@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -45,9 +46,11 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
-            <AppShell>
-              <ThemedStack />
-            </AppShell>
+            <BottomSheetModalProvider>
+              <AppShell>
+                <ThemedStack />
+              </AppShell>
+            </BottomSheetModalProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

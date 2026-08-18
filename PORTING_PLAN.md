@@ -609,7 +609,7 @@ and summarise after each.
 | **4** | Forms & motion: `Input`, `Keypad`, `OtpField`, `Toggle`, `ToggleRow`, `ChipGroup`, `AmountHero`, `AmountField`, `ProgressTrack`, `JourneyStrip`, `SuccessBurst` + Reanimated (§5.7–5.10) | ✅ **Done** — see §17 |
 | **5** | Home, wallets, activity, transaction detail — incl. masking, FlashList | ✅ **Done** — see §18 |
 | **6** | Send flow + onboarding (10 screens, keypad-driven) | ✅ **Done** — see §19 |
-| **7** | Money: convert, fund, rates, bills, bill pay (6 screens) | Incl. the swap button (§5.14) and the 3 fund branches |
+| **7** | Money: convert, fund, rates, bills, bill pay (6 screens) | ✅ **Done** — see §20 |
 | **8** | Account + support (9 screens) | All 29 screens complete |
 | **9** | Polish: dark-mode sweep, a11y labels, empty/loading/error states from §8, test gaps | Definition of done met across the board |
 
@@ -1082,4 +1082,48 @@ comment saying why the ordering matters. Worth revisiting when
 full (238G of 238G). Clearing regenerable npm/jest/metro caches freed enough
 to continue. Nothing to do with the port, but it will recur if the disk stays
 this full.
+
+---
+
+## 20. Phase 7 result
+
+Convert, add money, rates, bills and bill pay, plus the wallet picker as a
+real bottom sheet. **249 tests** across 17 suites; `tsc`,
+`eslint --max-warnings 0` and all three bundles clean.
+
+### The two layouts that needed deliberate RN equivalents
+
+**The swap control (§5.14).** The design centres it on the seam between the
+two amount fields with `top: 50%; transform: translate(-50%, -50%)`. RN has
+no percentage translate, so it is absolutely positioned at `top: '50%'` with
+a negative margin of half its height, inside a `pointerEvents="box-none"`
+wrapper so the fields underneath stay tappable.
+
+**The bills grid (§5.13).** Six categories, three across. Built as rows of
+three `flex: 1` cells with explicit fillers for a short last row — not
+`flexWrap` with percentage widths, which drifts at odd container widths. Same
+choice the keypad makes.
+
+### The wallet picker is a sheet on a route
+
+`@gorhom/bottom-sheet` inside the existing `wallet-picker` modal route, so
+back and swipe-down still dismiss it with no custom handling. It reports the
+chosen wallet's **currency alongside its id**, because the caller stores both
+and should not have to infer one from the other — the first version hardcoded
+`NGN` and would have mislabelled every non-naira wallet.
+
+`BottomSheetModalProvider` now sits at the root, inside the theme provider.
+
+### The rate chart
+
+Seven bars, scaled between the week's low and high, in plain flex. No
+charting library for seven values. History is real per §8.17, served from the
+client fixture until a rates-history endpoint exists.
+
+### Bill categories have one home
+
+`features/bills/categories.ts` holds the six categories with the field each
+biller collects — they genuinely differ ("Meter number", "Smartcard number",
+"Phone number") — and marks electricity as the only one that returns a
+prepaid token, rather than assuming it.
 
