@@ -60,6 +60,7 @@
   --color-indicator-brand: #0AA5DB;
   --color-indicator-neutral: #A4B0C0;
   --color-indicator-track: #E1E7EF;
+  --color-control-track-off: #CDD6E1;
   --color-money-in: #0F8C58;
   --color-money-out: #0B0D47;
   --color-money-pending: #D88910;
@@ -131,6 +132,7 @@
   --color-indicator-brand: #0AA5DB;
   --color-indicator-neutral: #6E7885;
   --color-indicator-track: #262B34;
+  --color-control-track-off: #343A45;
   --color-money-in: #34C58A;
   --color-money-out: #F1F4F8;
   --color-money-pending: #E9B65C;

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -19,6 +20,16 @@ import { ScreenTitle } from '@/components/core/ScreenTitle';
 import { SectionLabel } from '@/components/core/SectionLabel';
 import { StatusDot } from '@/components/feedback/StatusDot';
 import { TransactionRow } from '@/components/data/TransactionRow';
+import { AmountField } from '@/components/forms/AmountField';
+import { AmountHero } from '@/components/forms/AmountHero';
+import { ChipGroup } from '@/components/forms/ChipGroup';
+import { Input } from '@/components/forms/Input';
+import { JourneyStrip } from '@/components/feedback/JourneyStrip';
+import { Keypad } from '@/components/forms/Keypad';
+import { OtpField } from '@/components/forms/OtpField';
+import { ProgressTrack } from '@/components/feedback/ProgressTrack';
+import { SuccessBurst } from '@/components/feedback/SuccessBurst';
+import { ToggleRow } from '@/components/forms/ToggleRow';
 import { useSessionStore } from '@/store/session';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -31,6 +42,12 @@ import { useTheme } from '@/theme/ThemeProvider';
  * live check that back, swipe-back and browser-back all work.
  */
 export default function ComponentGallery() {
+  const [code, setCode] = useState('471');
+  const [pin, setPin] = useState('12');
+  const [filter, setFilter] = useState<string | null>('All');
+  const [preset, setPreset] = useState<string | null>('200');
+  const [alertOn, setAlertOn] = useState(true);
+  const [search, setSearch] = useState('');
   const { theme, name, toggleTheme } = useTheme();
   const { colors, spacing, spacingRaw, size } = theme;
 
@@ -230,6 +247,134 @@ export default function ComponentGallery() {
         <Text variant="labelMuted" tone="muted">
           Live rate · 1 GBP = 1,985 NGN
         </Text>
+      </View>
+
+      {/* Forms */}
+      <View style={{ marginTop: spacingRaw.sectionGapLg }}>
+        <SectionLabel>Forms</SectionLabel>
+        <Input
+          label="Search"
+          placeholder="Search by name or bank"
+          value={search}
+          onChangeText={setSearch}
+          style={{ marginTop: spacing.sm }}
+        />
+        <Input
+          label="Amount"
+          value="9,000"
+          error="Not enough in your GBP wallet"
+          style={{ marginTop: spacing.lg }}
+        />
+        <ChipGroup
+          style={{ marginTop: spacing.lg }}
+          options={['All', 'Sent', 'Received', 'Bills']}
+          value={filter}
+          onChange={setFilter}
+        />
+        <ChipGroup
+          style={{ marginTop: spacing.md }}
+          tone="brand"
+          numeric
+          align="center"
+          options={['50', '100', '200', '500']}
+          value={preset}
+          onChange={setPreset}
+        />
+        <ToggleRow
+          first
+          style={{ marginTop: spacing.lg }}
+          title="Alert me at this rate"
+          detail="Today is ₦25 above your target"
+          checked={alertOn}
+          onChange={setAlertOn}
+        />
+      </View>
+
+      {/* Amounts */}
+      <View style={{ marginTop: spacingRaw.sectionGapMd }}>
+        <SectionLabel>Amounts</SectionLabel>
+        <AmountHero label="You send" currencySymbol="£" amount="200" helper="They get ₦397,000" />
+        <AmountHero
+          size="md"
+          currencySymbol="£"
+          amount="900"
+          state="over"
+          helper="More than your GBP balance of £840.20"
+        />
+        <AmountField
+          style={{ marginTop: spacing.md }}
+          label="From"
+          balance="£840.20"
+          currency="GBP"
+          currencySymbol="£"
+          flag="🇬🇧"
+          amount="200"
+          editable={false}
+          onCurrencyPress={() => {}}
+        />
+        <AmountField
+          style={{ marginTop: spacing.md }}
+          tone="brand"
+          label="To"
+          balance="₦1,250,000"
+          currency="NGN"
+          currencySymbol="₦"
+          flag="🇳🇬"
+          amount="397,000"
+          editable={false}
+          onCurrencyPress={() => {}}
+        />
+      </View>
+
+      {/* Code entry */}
+      <View style={{ marginTop: spacingRaw.sectionGapMd }}>
+        <SectionLabel>Code entry</SectionLabel>
+        <OtpField value={code} length={6} style={{ marginTop: spacing.sm }} />
+        <OtpField value={pin} length={4} mask style={{ marginTop: spacing.lg }} />
+        <Keypad
+          style={{ marginTop: spacing.lg }}
+          decimal={false}
+          onKey={(key) => {
+            setCode((current) =>
+              key === 'back' ? current.slice(0, -1) : (current + key).slice(0, 6)
+            );
+            setPin((current) =>
+              key === 'back' ? current.slice(0, -1) : (current + key).slice(0, 4)
+            );
+          }}
+        />
+      </View>
+
+      {/* Progress & journey */}
+      <View style={{ marginTop: spacingRaw.sectionGapMd }}>
+        <SectionLabel>Progress</SectionLabel>
+        <ProgressTrack variant="segmented" value={2} total={4} />
+        <ProgressTrack style={{ marginTop: spacing.md }} value={1} total={2} />
+        <ProgressTrack style={{ marginTop: spacing.md }} value={2} total={2} />
+
+        <JourneyStrip
+          style={{ marginTop: spacing.lg }}
+          compact
+          steps={[
+            { label: 'You pay', state: 'done' },
+            { label: 'We convert', state: 'active' },
+            { label: 'They receive', state: 'todo' },
+          ]}
+        />
+
+        <JourneyStrip
+          style={{ marginTop: spacingRaw.sectionGapSm }}
+          orientation="vertical"
+          steps={[
+            { label: 'Payment authorised', detail: 'Face ID confirmed', state: 'done' },
+            { label: 'Converted to NGN', detail: 'at 1,985 per £1', state: 'active' },
+            { label: 'Sent to GTBank', detail: 'Verified account', state: 'todo' },
+          ]}
+        />
+      </View>
+
+      <View style={{ alignItems: 'center', marginTop: spacingRaw.sectionGapMd }}>
+        <SuccessBurst />
       </View>
 
       {/* One filled action; alternatives sit below */}

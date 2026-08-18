@@ -207,6 +207,11 @@ export type ColorTokens = {
     /** Track behind a progress fill / unfilled segment. */
     track: string;
   };
+  /** Inactive control chrome that is neither text, border nor indicator. */
+  control: {
+    /** Unfilled switch track and unfilled PIN dot. */
+    trackOff: string;
+  };
   money: {
     in: string;
     /** Money out is INK, not red — sending is the point of the app. */
@@ -292,6 +297,9 @@ export const lightColors: ColorTokens = {
     neutral: gray[400],
     track: gray[200],
   },
+  control: {
+    trackOff: gray[300],
+  },
   money: {
     in: green[600],
     out: ink[900],
@@ -376,6 +384,9 @@ export const darkColors: ColorTokens = {
     brand: blue[500],
     neutral: grayDark[400],
     track: grayDark[200],
+  },
+  control: {
+    trackOff: grayDark[300],
   },
   money: {
     in: '#34C58A',
@@ -780,7 +791,7 @@ export const motion = {
   /** The cyan ring that pulses off an in-flight step. */
   pulseRing: { from: 0, to: 9, colorFrom: 'rgba(10, 165, 219, 0.45)', colorTo: 'rgba(10, 165, 219, 0)' },
   /** SuccessBurst pop. */
-  pop: { from: 0.4, overshoot: 1.08, to: 1 },
+  pop: { from: 0.4 as number, overshoot: 1.08 as number, to: 1 as number },
 } as const;
 
 /* ==========================================================================

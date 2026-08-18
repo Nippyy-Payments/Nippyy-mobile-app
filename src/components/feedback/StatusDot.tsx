@@ -1,14 +1,6 @@
-import { useEffect } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, {
-  Easing,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 
+import { PulseRing } from '@/components/feedback/PulseRing';
 import { useTokens } from '@/theme/ThemeProvider';
 
 export type StatusTone = 'success' | 'pending' | 'danger' | 'brand' | 'neutral';
@@ -23,13 +15,6 @@ export type StatusDotProps = {
 };
 
 /**
- * How far the pulse ring spreads past the dot, per the source's 9px shadow
- * spread, and the opacity it starts at.
- */
-const RING_SPREAD = 9;
-const RING_OPACITY = 0.45;
-
-/**
  * The small filled circle that marks a live rate, an unread notification or a
  * connection state.
  *
@@ -38,7 +23,7 @@ const RING_OPACITY = 0.45;
  * exist.
  */
 export function StatusDot({ tone = 'success', size, pulse = false, style, testID }: StatusDotProps) {
-  const { colors, size: sizes, duration, easing } = useTokens();
+  const { colors, size: sizes } = useTokens();
 
   const dimension = size ?? sizes.dot;
 
@@ -50,46 +35,15 @@ export function StatusDot({ tone = 'success', size, pulse = false, style, testID
     neutral: colors.indicator.neutral,
   };
 
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    if (!pulse) return;
-    progress.value = withRepeat(
-      withTiming(1, { duration: duration.pulse, easing: Easing.bezier(...easing.out) }),
-      -1,
-      false
-    );
-  }, [pulse, progress, duration.pulse, easing.out]);
-
-  // The source animates box-shadow spread, which RN cannot express. An
-  // expanding, fading ring behind the dot reads identically.
-  const ringStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [RING_OPACITY, 0]),
-    transform: [
-      { scale: interpolate(progress.value, [0, 1], [1, (dimension + RING_SPREAD * 2) / dimension]) },
-    ],
-  }));
-
   return (
     <View
       testID={testID}
-      style={[{ width: dimension, height: dimension, flexShrink: 0 }, style]}
+      style={[
+        { width: dimension, height: dimension, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+        style,
+      ]}
     >
-      {pulse && (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            {
-              position: 'absolute',
-              width: dimension,
-              height: dimension,
-              borderRadius: dimension / 2,
-              backgroundColor: tones[tone],
-            },
-            ringStyle,
-          ]}
-        />
-      )}
+      <PulseRing size={dimension} color={tones[tone]} active={pulse} />
       <View
         style={{
           width: dimension,

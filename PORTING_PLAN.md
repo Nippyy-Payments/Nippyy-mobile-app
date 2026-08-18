@@ -349,7 +349,7 @@ Three things in the source are **local state that must become routes**:
 Tab visibility is handled by **route grouping** — full-screen flows live
 outside `(tabs)` — not by the source's `FULLSCREEN` array.
 
-### 7.4 A bug in the source worth knowing about
+### 7.4 A redundancy in the source (corrected in phase 4)
 
 `ProgressTrack` (segmented) contains a dead ternary:
 
@@ -357,10 +357,14 @@ outside `(tabs)` — not by the source's `FULLSCREEN` array.
 background: i < value ? (complete ? 'var(--green-500)' : 'var(--green-500)') : …
 ```
 
-Both branches are identical, so a completed segmented track never changes
-colour — contradicting the component's own doc ("amber while outstanding,
-green once complete"). I will implement the **documented** behaviour and flag
-it here rather than copying the bug. Tell me if you want the bug preserved.
+I first read this as a rendering bug. **It is not.** Both branches being
+identical has no visual consequence: when `complete` is true, every segment
+satisfies `i < value`, so they are all green either way. The rendered result
+is correct — completed steps green, the current step amber, the rest grey —
+and it does not contradict the component's doc.
+
+It is dead code, not a defect. The port drops the redundant branch and keeps
+the behaviour exactly as it ships.
 
 ---
 
@@ -602,7 +606,7 @@ and summarise after each.
 | **1** | Primitives: `Text`, `Icon` (~40 paths), `Screen`, `MoneyText`, `Button`, `IconButton`, `Card`, `Badge`, `StatusDot`, `RowTile`, `Avatar` + tests | ✅ **Done** — see §14 |
 | **2** | Layout & data components: `ScreenHeader`, `ScreenTitle`, `SectionLabel`, `ListRow`, `TransactionRow`, `DetailRow`, `EmptyState`, `InlineAlert` | ✅ **Done** — see §15 |
 | **3** | Navigation shell: expo-router tree, custom `TabBar` with blur, 4 tab screens as stubs, back/swipe/deep-link verified on all three | ✅ **Done** — see §16 |
-| **4** | Forms & motion: `Input`, `Keypad`, `OtpField`, `Toggle`, `ToggleRow`, `ChipGroup`, `AmountHero`, `AmountField`, `ProgressTrack`, `JourneyStrip`, `SuccessBurst` + Reanimated (§5.7–5.10) | Motion matches the documented timings |
+| **4** | Forms & motion: `Input`, `Keypad`, `OtpField`, `Toggle`, `ToggleRow`, `ChipGroup`, `AmountHero`, `AmountField`, `ProgressTrack`, `JourneyStrip`, `SuccessBurst` + Reanimated (§5.7–5.10) | ✅ **Done** — see §17 |
 | **5** | Home, wallets, activity, transaction detail — incl. masking, FlashList | 4 screens pixel-matched |
 | **6** | Send flow + onboarding (10 screens, keypad-driven) | Full send journey works end to end |
 | **7** | Money: convert, fund, rates, bills, bill pay (6 screens) | Incl. the swap button (§5.14) and the 3 fund branches |
@@ -880,4 +884,60 @@ The four tab screens, `send`, `send/review`, `transaction/[id]` and
 exercise every route type (tab, pushed, nested flow, dynamic param, modal).
 They are replaced by the real screens in phases 5 to 8. The wallet picker
 becomes a `@gorhom/bottom-sheet` surface in phase 7, on the same route.
+
+---
+
+## 17. Phase 4 result
+
+Eleven form and motion components, plus a shared `PulseRing`. **167 tests**
+across 12 suites; `tsc`, `eslint --max-warnings 0` and all three bundles clean.
+
+### Motion, resolved
+
+| Source | Port |
+| --- | --- |
+| `@keyframes nip-pulse` (animates box-shadow **spread**) | `PulseRing` — a sibling circle that scales and fades. Spread is not a shadow property in RN at all, so there was nothing to animate |
+| `@keyframes nip-pop` (spring 0.4 → 1.08 → 1) | `withSequence` on the spring bezier, in `SuccessBurst` |
+| `@keyframes nip-spin` | Looped rotation in the `Button` spinner |
+| `transition: …` | `withTiming` on `duration.*` + `Easing.bezier(...easing.out)` |
+| `prefers-reduced-motion` | Reanimated's `useReducedMotion()`, honoured in `Toggle`, `ProgressTrack`, `SuccessBurst` and `PulseRing` |
+
+`PulseRing` was extracted rather than duplicated: `StatusDot` and both
+orientations of `JourneyStrip` need the same effect, and it was already
+hand-rolled in `StatusDot` from phase 1. That copy is now gone.
+
+### The focus halo
+
+`--shadow-focus` is a spread-only ring, which RN cannot express as a shadow.
+`Input` draws it as a real ring — an inset-negative `View` behind the field —
+and suppresses the browser's own outline on web only. It is deliberately
+suppressed while the field is invalid, so the red border carries the state
+alone.
+
+### A token added
+
+`colors.control.trackOff` (`gray-300`). The unchecked switch track and the
+unfilled PIN dot both need it, and neither is a border, an indicator or text.
+Reaching into the raw scale from a component would have broken the rule that
+every value is semantic.
+
+### Correction to §7.4
+
+I previously recorded `ProgressTrack`'s duplicated ternary as a rendering bug
+that made a completed segmented track keep the wrong colour. **That was
+wrong.** When the track is complete every segment satisfies `i < value`, so it
+is entirely green either way — the branch is redundant, not broken. §7.4 now
+says so, and the port keeps the shipped behaviour.
+
+### Typed routes turned off
+
+Expo's route typegen mis-scans this layout: with `src/app` as the router root
+it emitted **21 component files** under `src/components/**` as routes, dropped
+`/send`, and offered `/index` in place of `/`. That made `tsc` fail on correct
+code and pass on incorrect code depending on when the file was last written.
+
+`experiments.typedRoutes` is now `false`. Route correctness is enforced
+instead by `navigation-rules.test.ts`, which checks every `router.push` target
+against the filesystem — verified to fail on a bad path, and unaffected by
+typegen state. Worth re-enabling if a later SDK fixes the scan.
 
