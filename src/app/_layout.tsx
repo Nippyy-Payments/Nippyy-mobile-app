@@ -86,6 +86,7 @@ function ThemedStack() {
         <Stack.Screen name="recipients" />
         <Stack.Screen name="money" />
         <Stack.Screen name="account" />
+        <Stack.Screen name="support" />
         <Stack.Screen name="transaction/[id]" />
         <Stack.Screen name="gallery" />
 

@@ -610,7 +610,7 @@ and summarise after each.
 | **5** | Home, wallets, activity, transaction detail — incl. masking, FlashList | ✅ **Done** — see §18 |
 | **6** | Send flow + onboarding (10 screens, keypad-driven) | ✅ **Done** — see §19 |
 | **7** | Money: convert, fund, rates, bills, bill pay (6 screens) | ✅ **Done** — see §20 |
-| **8** | Account + support (9 screens) | All 29 screens complete |
+| **8** | Account + support (9 screens) | ✅ **Done** — all 29 screens complete, see §21 |
 | **9** | Polish: dark-mode sweep, a11y labels, empty/loading/error states from §8, test gaps | Definition of done met across the board |
 
 Phases 5–8 depend on answers to §8. If the answers are slow I will build the
@@ -1126,4 +1126,45 @@ client fixture until a rates-history endpoint exists.
 biller collects — they genuinely differ ("Meter number", "Smartcard number",
 "Phone number") — and marks electricity as the only one that returns a
 prepaid token, rather than assuming it.
+
+---
+
+## 21. Phase 8 result
+
+Account and support — **all 29 screens are now built**. 269 tests across 18
+suites; `tsc`, `eslint --max-warnings 0` and all three bundles clean.
+
+### Screens
+
+`menu`, `profile`, `tiers`, `security`, `security/devices`, `notifications`,
+`close` → `close/confirm`, `support`, `support/chat`.
+
+### Three rulings visible in the code
+
+- **§8.8 changed designed copy.** The dark-mode row's off-label read
+  "Following the system". The theme is user-owned and the OS scheme is never
+  consulted, so that sentence would be false. It reads **"Off"**. This is the
+  only place the port changes the design's words, and there is a test pinning
+  it — including that the old wording never appears.
+- **§8.11 made the empty state a state.** One `notifications` route, two
+  states, rather than the source's separate `notifsEmpty` screen.
+- **§8.13 gave the Face ID toggle real consequence.** It writes
+  `biometricsEnabled`, which is exactly what `lib/auth.ts` checks before
+  offering a biometric prompt. Turning it off genuinely routes confirmation
+  to the PIN gate.
+
+### Local sub-views became real routes
+
+`security/devices` and `close/confirm` were `useState` sub-views in the
+source. They are now pushed routes, so back, iOS swipe-back and Android
+hardware back behave there exactly as everywhere else.
+
+### Data with one home
+
+`features/account/menu.ts` holds the menu groups, support contacts, social
+links, devices and close-account copy. A test asserts every menu row has
+**exactly one** destination — `to` or `href`, never both and never neither —
+because that is what decides whether the row shows a chevron or the external
+glyph, and the design is explicit that getting it wrong makes every row a
+guess.
 
